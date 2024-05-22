@@ -48,7 +48,36 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  const companies = await Company.findAll();
+  //Check if body has values to filter with
+  //If if so, validate body
+  //Throw error if body is invalid,
+  //return filtered data
+  //If no body, then return all companies
+  const minEmployees = req.params?.minEmployees;
+  const maxEmployees = req.params?.maxEmployees;
+  const nameLike = req.params?.nameLike;
+
+  let companies;
+  if (minEmployees || maxEmployees || nameLike) {
+    const validator = jsonschema.validate(
+      req.body,
+      compGetFilter.json,
+      { required: true },
+    );
+
+    if (!validator.valid) {
+      const errs = validator.errors.map(e => e.stack);
+      throw new BadRequestError(errs);
+    }
+
+    if (minEmployees > maxEmployees) {
+      throw new BadRequestError('Min employees cannot be greater than max employees');
+    }
+
+    companies = await Company.findFiltered(req.body); //TODO: placeholder function
+  }
+
+  companies = await Company.findAll();
   return res.json({ companies });
 });
 
