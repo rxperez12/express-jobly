@@ -104,7 +104,7 @@ describe("GET /companies", function () {
 
   test("ok for all 3 params", async function () {
     const resp = await request(app).get(
-      "/companies?namLike=3&minEmployees=1&maxEmployees=3");
+      "/companies?nameLike=3&minEmployees=1&maxEmployees=3");
     expect(resp.body).toEqual({
       companies:
         [
@@ -121,7 +121,7 @@ describe("GET /companies", function () {
 
   test("ok for nameLike param", async function () {
     const resp = await request(app).get(
-      "/companies?namLike=2");
+      "/companies?nameLike=2");
     expect(resp.body).toEqual({
       companies:
         [
