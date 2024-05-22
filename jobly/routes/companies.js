@@ -58,7 +58,9 @@ router.get("/", async function (req, res, next) {
   const nameLike = req.params?.nameLike;
 
   let companies;
-  if (minEmployees || maxEmployees || nameLike) {
+  if (minEmployees !== undefined
+    || maxEmployees !== undefined
+    || nameLike !== undefined) {
     const validator = jsonschema.validate(
       req.body,
       compGetFilter.json,
@@ -70,7 +72,8 @@ router.get("/", async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    if (minEmployees > maxEmployees) {
+    if ((minEmployees !== undefined && maxEmployees !== undefined)
+      && (minEmployees > maxEmployees)) {
       throw new BadRequestError('Min employees cannot be greater than max employees');
     }
 
