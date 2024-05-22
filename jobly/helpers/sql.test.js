@@ -35,4 +35,5 @@ describe("sqlForPartialUpdate", function () {
     })).toThrowError(/No data/);
 
   });
+
 });

@@ -1,5 +1,5 @@
 import db from "../db.js";
-import { BadRequestError, NotFoundError} from "../expressError.js";
+import { BadRequestError, NotFoundError } from "../expressError.js";
 import { sqlForPartialUpdate } from "../helpers/sql.js";
 
 /** Related functions for companies. */
@@ -36,12 +36,12 @@ class Company {
                     description,
                     num_employees AS "numEmployees",
                     logo_url AS "logoUrl"`, [
-          handle,
-          name,
-          description,
-          numEmployees,
-          logoUrl,
-        ],
+      handle,
+      name,
+      description,
+      numEmployees,
+      logoUrl,
+    ],
     );
     const company = result.rows[0];
 
@@ -90,6 +90,24 @@ class Company {
     return company;
   }
 
+  /**
+   * Take in object with optional keys minEmployees, maxEmployees, and nameLike.
+   * Using filters, return data of companies that match filter(s).
+   *
+   * Input:
+   * {
+   *  nameLike: 'str' case insenstive,
+   *  minEmployees: num, must be less than maxEmployee key
+   *  maxEmployees: num, must be greater than minEmployee key
+   * }
+   *
+   * Returns { handle, name, description, numEmployees, logoUrl, jobs }
+   *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
+   */
+  static async getFiltered(filter) {
+    return;
+  }
+
   /** Update company data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain all the
@@ -104,11 +122,11 @@ class Company {
 
   static async update(handle, data) {
     const { setCols, values } = sqlForPartialUpdate(
-        data,
-        {
-          numEmployees: "num_employees",
-          logoUrl: "logo_url",
-        });
+      data,
+      {
+        numEmployees: "num_employees",
+        logoUrl: "logo_url",
+      });
     const handleVarIdx = "$" + (values.length + 1);
 
     const querySql = `
