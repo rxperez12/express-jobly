@@ -14,7 +14,7 @@
     "bcrypt": "*",
     "body-parser": "*",
     "colors": "*",
-    "cors": "*",
+    "cors": "^2.8.5",
     "dotenv": "*",
     "express": "^5.0.0-beta.3",
     "jsonschema": "*",
@@ -23,8 +23,8 @@
     "pg": "*"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^1.6.0",
     "supertest": "^7.0.0",
-    "vitest": "^1.6.0",
-    "@vitest/coverage-v8": "^1.6.0"
+    "vitest": "^1.6.0"
   }
 }
