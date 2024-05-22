@@ -8,6 +8,7 @@ import { ensureLoggedIn } from "../middleware/auth.js";
 import Company from "../models/company.js";
 import compNewSchema from "../schemas/compNew.json" with { type: "json" };
 import compUpdateSchema from "../schemas/compUpdate.json" with { type: "json" };
+import compGetFilter from "../schemas/compGetFilter.json" with { type: "json" };
 
 const router = new Router();
 
@@ -53,16 +54,21 @@ router.get("/", async function (req, res, next) {
   //Throw error if body is invalid,
   //return filtered data
   //If no body, then return all companies
-  const minEmployees = req.params?.minEmployees;
-  const maxEmployees = req.params?.maxEmployees;
+  const minEmployees = Number(req.params?.minEmployees);
+  const maxEmployees = Number(req.params?.maxEmployees);
   const nameLike = req.params?.nameLike;
 
   let companies;
-  if (minEmployees !== undefined
-    || maxEmployees !== undefined
+  if (!Number.isNaN(minEmployees)
+    || !Number.isNaN(maxEmployees)
     || nameLike !== undefined) {
     const validator = jsonschema.validate(
-      req.body,
+      {
+        minEmployees: minEmployees,
+        maxEmployees: maxEmployees,
+        nameLike: nameLike
+      }
+      ,
       compGetFilter.json,
       { required: true },
     );
