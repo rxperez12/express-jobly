@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { BadRequestError, NotFoundError } from "../expressError.js";
-import { sqlForPartialUpdate } from "../helpers/sql.js";
+import { sqlForPartialUpdate, sqlForFilterConditions } from "../helpers/sql.js";
 
 /** Related functions for companies. */
 
@@ -104,8 +104,30 @@ class Company {
    * Returns { handle, name, description, numEmployees, logoUrl, jobs }
    *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
    */
-  static async getFiltered(filter) {
-    return;
+  static async getFiltered(filters) {
+    const { setCols, values } = sqlForFilterConditions(filters);
+    console.log('SETCOLS!!!!!', setCols);
+    console.log('VALUES!!!!!!', values);
+    // check what filtered values there are
+    const querySql = `
+    SELECT
+        handle,
+        name,
+        description,
+        num_employees AS "numEmployees",
+        logo_url AS "logoUrl",
+    WHERE ${setCols}
+    RETURNING
+        handle,
+        name,
+        description,
+        num_employees AS "numEmployees",
+        logo_url AS "logoUrl"`;
+    const result = await db.query(querySql, [...values]);
+
+    const companies = result.rows[0];
+
+    return companies;
   }
 
   /** Update company data with `data`.

@@ -42,4 +42,39 @@ function sqlForPartialUpdate(dataToUpdate, jsToSql) {
   };
 }
 
-export { sqlForPartialUpdate };
+
+/**
+ * Intake as the first arg as an object w/ properties for a where clause
+ *
+ * Intake as the second arg an object w/ properties that we allow for update,
+ * where the data param keys are in camelCase but the db naming is in snake_case
+ *
+ * EX INPUT:
+ *    { nameLike, minEmployees, maxEmployees },
+
+ *
+ */
+function sqlForFilterConditions(dataToFilter) {
+  const keys = Object.keys(dataToFilter);
+  if (keys.length === 0) throw new BadRequestError("No data");
+
+  const cols = keys.map((colName, idx) => {
+    if (colName === nameLike) {
+      return `name ILIKE '%${idx + 1}%'`;
+    }
+    if (colName === minEmployees) {
+      return `numEmployees >= ${idx + 1}`;
+    }
+    if (colName === maxEmployees) {
+      return `numEmployees <= ${idx + 1}`;
+    }
+  }
+  );
+
+  return {
+    setCols: cols.join("AND "),
+    values: Object.values(dataToUpdate),
+  };
+}
+
+export { sqlForPartialUpdate, sqlForFilterConditions };
