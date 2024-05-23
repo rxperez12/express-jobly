@@ -15,8 +15,11 @@ import { BadRequestError } from "../expressError.js";
  *      isAdmin: "is_admin",
  *     }
  *
- * Outputs an object that has a setColumn key which has as a pre-written
- * string to assign snake_case column names to variable index, and a values
+ * TODO: Outputs an object that has setColumn key that contains a partial sql query string and a values key
+ * corresponding array of values that will be updated
+ *
+ * Outputs an object that has a setColumn key which has a pre-written
+ * string to assign snake_case column names to variable index. values
  * key with an array of corresponding values that the user wishes to update
  *
  * EX OUTPUT:

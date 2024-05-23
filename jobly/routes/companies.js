@@ -49,14 +49,6 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
-  //Check if body has values to filter with
-  //If if so, validate body
-  //Throw error if body is invalid,
-  //return filtered data
-  //If no body, then return all companies
-  // const minEmployees = Number(req.query?.minEmployees);
-  // const maxEmployees = Number(req.query?.maxEmployees);
-  // const nameLike = req.query?.nameLike;
 
   const userInput = {};
 
@@ -75,9 +67,9 @@ router.get("/", async function (req, res, next) {
   if (userInput.minEmployees !== undefined
     || userInput.maxEmployees !== undefined
     || userInput.nameLike !== undefined) {
+
     const validator = jsonschema.validate(
-      userInput
-      ,
+      userInput,
       compGetFilter,
       { required: false },
     );
@@ -87,14 +79,14 @@ router.get("/", async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    if ((userInput.minEmployees !== undefined
+    if ((userInput.minEmployees !== undefined // This validation could get moved to the model method
       && userInput.maxEmployees !== undefined)
       && (userInput.minEmployees > userInput.maxEmployees)) {
       throw new BadRequestError('Min employees cannot be greater than max employees');
     }
 
     companies = await Company.getFiltered(userInput);
-    return res.json({ companies });
+    return res.json({ companies }); //FIXME: put this up top as guard statement
   }
 
   companies = await Company.findAll();

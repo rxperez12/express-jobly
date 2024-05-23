@@ -103,6 +103,7 @@ class Company {
    *
    * Returns { handle, name, description, numEmployees, logoUrl, jobs }
    *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
+   * TODO: combine this in the future
    */
   static async getFiltered(filters) {
     const { whereClause, values } = this.sqlForFilterConditions(filters);
@@ -116,7 +117,7 @@ class Company {
         logo_url AS "logoUrl"
     FROM companies
     WHERE ${whereClause}`;
-    const result = await db.query(querySql, [...values]);
+    const result = await db.query(querySql, values); //don't need to spread array
 
     const companies = result.rows;
 
@@ -180,9 +181,13 @@ class Company {
 
 
   /**
- * Intake as the first arg as an object w/ properties for a where clause
+ * Intake as the first arg an object w/ properties for a where clause
  * Outputs an object with 1 property for the WHERE clause string and a
  * property for the corresponding key values
+ *
+ * //TODO: mutating on line 204, either document it or create entirely new array
+ * MUCH MORE CLEARER
+ * MUTATING SHOULD HAVE A GOOD REASON OR DON'T DO IT
  *
  * EX INPUT:
  *    { minEmployees:1, maxEmployees:2 }
@@ -214,7 +219,7 @@ class Company {
 
     return {
       whereClause: partialClauses.join(" AND "),
-      values: Object.values(dataToFilter),
+      values: Object.values(dataToFilter), //Maybe map is better choice. do not preserve order of insertion - no guarantee that they will be the same order
     };
   }
 }
