@@ -25,9 +25,15 @@ On every request,
 
 - authenticateJWT
 
+is_admin
 users
 
+should be allowed either by admin or by user himself
 getting information of user,
 updating user,
 deleting user
-should be allowed either by admin or by user himself
+
+
+
+---------------------------------
+

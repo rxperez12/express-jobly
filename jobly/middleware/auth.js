@@ -47,7 +47,7 @@ function ensureLoggedIn(req, res, next) {
 function ensureAdmin(req, res, next) {
   console.log('ensureAdmin ran', res.locals.user?.isAdmin);
 
-  if (res.locals.user?.isAdmin) return next();
+  if (res.locals.user?.isAdmin === true) return next(); //TODO: remember that we must compare to true, in case someone makes changes that affects truthiness
   throw new UnauthorizedError();
 }
 
@@ -56,17 +56,17 @@ function ensureAdmin(req, res, next) {
  * If not, raises Unauthorized.
  */
 
-function ensureUserAccess(req, res, next) {
+function ensureUserAccess(req, res, next) { // FIXME: ensureAdminAndUser
   console.log('ensureUserAccess ran', req.params);
 
-  const userRoute = req.params?.username;
+  const userRoute = req.params?.username; // FIXME: update usernameParam
   const currentUser = res.locals.user?.username;
 
   const userMatchAndValid =
     (userRoute === currentUser)
-    && (currentUser !== undefined && currentUser !== undefined);
+    && (currentUser !== undefined && userRoute !== undefined);
 
-  if (res.locals.user?.isAdmin || userMatchAndValid) {
+  if (res.locals.user?.isAdmin === true || userMatchAndValid) {
     return next();
   }
   throw new UnauthorizedError();

@@ -70,7 +70,7 @@ describe("ensureLoggedIn", function () {
   });
 });
 
-describe("ensureAdmin", function () {
+describe("ensureAdmin", function () { // TODO: add if isAdmin is a string of yes, but not a boolean
   test("works", function () {
     const req = {};
     const res = { locals: { user: { isAdmin: true } } };
@@ -106,20 +106,20 @@ describe("ensureUserAccess", function () {
     ensureUserAccess(req, res, next);
   });
 
-  test("works if current user accessing route and is admin", function () {
+  test("works if current user is accessing route and is admin", function () {
     const req = { params: { username: 'test1' } };
     const res = { locals: { user: { username: 'test1', isAdmin: true } } };
     ensureUserAccess(req, res, next);
   });
 
-  test("unauth if not correct user", function () {
+  test("unauth if not admin and not correct user", function () {
     const req = { params: { username: 'test2' } };
     const res = { locals: { user: { username: 'test1' } } };
     expect(() => ensureUserAccess(req, res, next))
       .toThrow(UnauthorizedError);
   });
 
-  test("unauth if not admin and not user", function () {
+  test("unauth if anon", function () {
     const req = {};
     const res = { locals: { user: {} } };
     expect(() => ensureUserAccess(req, res, next))
