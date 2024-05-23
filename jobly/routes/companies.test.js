@@ -36,7 +36,7 @@ describe("POST /companies", function () {
     numEmployees: 10,
   };
 
-  test("ok for users", async function () { //TODO: update that these are admin users
+  test("ok for admin users", async function () {
     const resp = await request(app)
       .post("/companies")
       .send(newCompany)
@@ -47,7 +47,7 @@ describe("POST /companies", function () {
     });
   });
 
-  test("bad request with missing data", async function () {
+  test("bad request with missing data for admin user", async function () {
     const resp = await request(app)
       .post("/companies")
       .send({
@@ -58,7 +58,7 @@ describe("POST /companies", function () {
     expect(resp.statusCode).toEqual(400);
   });
 
-  test("bad request with invalid data", async function () {
+  test("bad request with invalid data for admin user", async function () {
     const resp = await request(app)
       .post("/companies")
       .send({
@@ -69,13 +69,25 @@ describe("POST /companies", function () {
     expect(resp.statusCode).toEqual(400);
   });
 
-  test("request without admin access", async function () { //TODO: test both admin and non-admin for bad requests to make sure that errors are firing inthe right order
+  test("error: request without admin access", async function () {
     const resp = await request(app)
       .post("/companies")
       .send(newCompany)
       .set("authorization", `Bearer ${u2Token}`);
     expect(resp.statusCode).toEqual(401);
   });
+
+  test("bad request with invalid data for regular user", async function () {
+    const resp = await request(app)
+      .post("/companies")
+      .send({
+        ...newCompany,
+        logoUrl: "not-a-url",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
 });
 
 /************************************** GET /companies */
@@ -252,7 +264,7 @@ describe("GET /companies/:handle", function () {
 /************************************** PATCH /companies/:handle */
 
 describe("PATCH /companies/:handle", function () {
-  test("works for users", async function () {
+  test("works for admin users", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
@@ -270,7 +282,7 @@ describe("PATCH /companies/:handle", function () {
     });
   });
 
-  test("unauth for anon", async function () { //TODO: test both admin and non-admin  + add "error"
+  test("error: unauth for anon", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
@@ -279,7 +291,17 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("not found on no such company", async function () {
+  test("error: unauth for not admin", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        name: "C1-new",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("error: not found on no such company for admin", async function () {
     const resp = await request(app)
       .patch(`/companies/nope`)
       .send({
@@ -289,7 +311,17 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(404);
   });
 
-  test("bad request on handle change attempt", async function () {
+  test("error: not admin with no such company search", async function () {
+    const resp = await request(app)
+      .patch(`/companies/nope`)
+      .send({
+        name: "new nope",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("error: bad request on handle change attempt", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
@@ -299,7 +331,17 @@ describe("PATCH /companies/:handle", function () {
     expect(resp.statusCode).toEqual(400);
   });
 
-  test("bad request on invalid data", async function () {
+  test("error: not admin with bad request on handle change attempt", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        handle: "c1-new",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("error: bad request on invalid data", async function () {
     const resp = await request(app)
       .patch(`/companies/c1`)
       .send({
@@ -307,6 +349,16 @@ describe("PATCH /companies/:handle", function () {
       })
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(400);
+  });
+
+  test("error: not admin and bad request on invalid data", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        logoUrl: "not-a-url",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 
   test("error: user updating without admin access", async function () {
@@ -331,20 +383,27 @@ describe("DELETE /companies/:handle", function () {
     expect(resp.body).toEqual({ deleted: "c1" });
   });
 
-  test("unauth for anon", async function () { //TODO: test both admin and non-admin
+  test("error: unauth for anon", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`);
     expect(resp.statusCode).toEqual(401);
   });
 
-  test("not found for no such company", async function () { //TODO: test both admin and non-admin`
+  test("error: admin user not found for no such company", async function () {
     const resp = await request(app)
       .delete(`/companies/nope`)
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(404);
   });
 
-  test("test for user without admin access", async function () { //TODO: add error
+  test("error: regular user not found for no such company", async function () {
+    const resp = await request(app)
+      .delete(`/companies/nope`)
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
+  test("test for user without admin access", async function () {
     const resp = await request(app)
       .delete(`/companies/c1`)
       .set("authorization", `Bearer ${u2Token}`);
