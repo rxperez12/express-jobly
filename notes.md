@@ -1,24 +1,33 @@
 remain open to everyone, including anonymous users.
-* GET ALL ("/") companies
-    * Company.findAll
-    * Company.getFiltered
 
-* GET ONE ("/:handle") company
-    * Company.get
+- GET ALL ("/") companies
 
+  - Company.findAll
+  - Company.getFiltered
+
+- GET ONE ("/:handle") company
+  - Company.get
 
 only be possible for users who logged in with an account that has the is_admin flag in the database.
 
-* PATCH ("/:handle")
-    * Company.update
+- PATCH ("/:handle") DONE
 
-* POST ("/")
-    * Company.create
+  - Company.update
 
-* DELETE ("/:handle")
-    * Company.remove
+- POST ("/") DONE
 
+  - Company.create
 
+- DELETE ("/:handle") DONE
+  - Company.remove
 
 On every request,
-* authenticateJWT
+
+- authenticateJWT
+
+users
+
+getting information of user,
+updating user,
+deleting user
+should be allowed either by admin or by user himself
