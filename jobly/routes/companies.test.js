@@ -72,7 +72,7 @@ describe("POST /companies", function () {
 /************************************** GET /companies */
 
 describe("GET /companies", function () {
-  test("ok for no params", async function () {
+  test("route returns ok for no params", async function () {
     const resp = await request(app).get("/companies");
     expect(resp.body).toEqual({
       companies:

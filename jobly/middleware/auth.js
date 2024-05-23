@@ -2,7 +2,7 @@
 
 import jwt from "jsonwebtoken";
 import { SECRET_KEY } from "../config.js";
-import { UnauthorizedError} from "../expressError.js";
+import { UnauthorizedError } from "../expressError.js";
 
 
 /** Middleware: Authenticate user.
@@ -34,12 +34,25 @@ function authenticateJWT(req, res, next) {
  */
 
 function ensureLoggedIn(req, res, next) {
+  console.log("USER INSTANCE", res.locals.user);
   if (res.locals.user?.username) return next();
   throw new UnauthorizedError();
 }
 
+/** Middleware to use when the user must be an admin.
+ *
+ * If not, raises Unauthorized.
+ */
+
+function ensureAdmin(req, res, next) {
+  if (res.locals.user?.is_admin) return next();
+  throw new UnauthorizedError();
+}
+
+// TODO: we just verified that we can use isAdmin, next write a test, add ensureAdmin to routes
 
 export {
   authenticateJWT,
   ensureLoggedIn,
+  ensureAdmin
 };

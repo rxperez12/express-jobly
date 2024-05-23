@@ -64,32 +64,31 @@ router.get("/", async function (req, res, next) {
 
   let companies;
 
-  if (userInput.minEmployees !== undefined
-    || userInput.maxEmployees !== undefined
-    || userInput.nameLike !== undefined) {
-
-    const validator = jsonschema.validate(
-      userInput,
-      compGetFilter,
-      { required: false },
-    );
-
-    if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
-      throw new BadRequestError(errs);
-    }
-
-    if ((userInput.minEmployees !== undefined // This validation could get moved to the model method
-      && userInput.maxEmployees !== undefined)
-      && (userInput.minEmployees > userInput.maxEmployees)) {
-      throw new BadRequestError('Min employees cannot be greater than max employees');
-    }
-
-    companies = await Company.getFiltered(userInput);
-    return res.json({ companies }); //FIXME: put this up top as guard statement
+  if (userInput.minEmployees === undefined
+    && userInput.maxEmployees === undefined
+    && userInput.nameLike === undefined) {
+    companies = await Company.findAll();
+    return res.json({ companies });
   }
 
-  companies = await Company.findAll();
+  const validator = jsonschema.validate(
+    userInput,
+    compGetFilter,
+    { required: false },
+  );
+
+  if (!validator.valid) {
+    const errs = validator.errors.map(e => e.stack);
+    throw new BadRequestError(errs);
+  }
+
+  if ((userInput.minEmployees !== undefined // TODO: This validation could get moved to the model method
+    && userInput.maxEmployees !== undefined)
+    && (userInput.minEmployees > userInput.maxEmployees)) {
+    throw new BadRequestError('Min employees cannot be greater than max employees');
+  }
+
+  companies = await Company.getFiltered(userInput);
   return res.json({ companies });
 });
 

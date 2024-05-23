@@ -119,6 +119,62 @@ describe("get", function () {
   });
 });
 
+
+/*************************************** getFiltered */
+
+describe("getFiltered", function () {
+  test("works: 3 properties in the argument", async function () {
+    const results = await Company.getFiltered(
+      {
+        nameLike: '3',
+        minEmployees: 2,
+        maxEmployees: 3
+      });
+
+    expect(results).toEqual([{
+      handle: "c3",
+      name: "C3",
+      description: "Desc3",
+      numEmployees: 3,
+      logoUrl: "http://c3.img",
+    }]);
+  });
+
+  test("works: only min & max employees set", async function () {
+    const results = await Company.getFiltered(
+      {
+        minEmployees: 1,
+        maxEmployees: 2
+      });
+
+    expect(results).toEqual([{
+      handle: "c1",
+      name: "C1",
+      description: "Desc1",
+      numEmployees: 1,
+      logoUrl: "http://c1.img",
+    },
+    {
+      handle: "c2",
+      name: "C2",
+      description: "Desc2",
+      numEmployees: 2,
+      logoUrl: "http://c2.img",
+    },]);
+  });
+
+  test("works: no results", async function () {
+    const results = await Company.getFiltered(
+      {
+        nameLike: '3',
+        minEmployees: 1,
+        maxEmployees: 2
+      });
+    expect(results).toEqual([]);
+  });
+});
+
+
 /************************************** update */
 
 describe("update", function () {
@@ -211,6 +267,38 @@ describe("remove", function () {
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+/**************************************** sqlForFilterConditions */
+
+describe("sqlForFilterConditions", function () {
+  test("works with 1 filter", async function () {
+    const result = Company.sqlForFilterConditions({ maxEmployees: 2 });
+    expect(result).toEqual({
+      whereClause: `num_employees <= $1`,
+      values: [2]
+    });
+  });
+
+  test("works with >1 filter", async function () { // TODO: add a third test where it works with all 3 filters
+    const result = Company.sqlForFilterConditions({
+      minEmployees: 1,
+      maxEmployees: 2
+    });
+    expect(result).toEqual({
+      whereClause: `num_employees >= $1 AND num_employees <= $2`,
+      values: [1, 2]
+    });
+  });
+
+  test("badRequestError: no filter data", async function () {
+    try {
+      Company.sqlForFilterConditions({});
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
     }
   });
 });

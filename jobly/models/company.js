@@ -194,7 +194,7 @@ class Company {
  *
  * EX OUTPUT:
  *    {
- *        whereClause: num_employees >=1 AND num_employees <=2,
+ *        whereClause: num_employees >= $1 AND num_employees <= $2,
  *        values: [1, 2]
  *     };
  *
