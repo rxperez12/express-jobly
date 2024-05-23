@@ -16,6 +16,7 @@ import {
   commonBeforeAll,
   commonBeforeEach,
   u1Token,
+  u2Token
 } from "./_testCommon.js";
 
 
@@ -66,6 +67,14 @@ describe("POST /companies", function () {
       })
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(400);
+  });
+
+  test("request without admin access", async function () {
+    const resp = await request(app)
+      .post("/companies")
+      .send(newCompany)
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
   });
 });
 
@@ -299,6 +308,17 @@ describe("PATCH /companies/:handle", function () {
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(400);
   });
+
+  test("test for user without admin access", async function () {
+    const resp = await request(app)
+      .patch(`/companies/c1`)
+      .send({
+        name: "C1-new",
+      })
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
 });
 
 /************************************** DELETE /companies/:handle */
@@ -323,4 +343,12 @@ describe("DELETE /companies/:handle", function () {
       .set("authorization", `Bearer ${u1Token}`);
     expect(resp.statusCode).toEqual(404);
   });
+
+  test("test for user without admin access", async function () {
+    const resp = await request(app)
+      .delete(`/companies/c1`)
+      .set("authorization", `Bearer ${u2Token}`);
+    expect(resp.statusCode).toEqual(401);
+  });
+
 });
