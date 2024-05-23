@@ -34,25 +34,48 @@ function authenticateJWT(req, res, next) {
  */
 
 function ensureLoggedIn(req, res, next) {
-  console.log("USER INSTANCE", res.locals.user);
+  // console.log("USER INSTANCE", res.locals.user);
   if (res.locals.user?.username) return next();
   throw new UnauthorizedError();
 }
 
-/** Middleware to use when the user must be an admin.
+/** Middleware to use that the user must be an admin.
  *
  * If not, raises Unauthorized.
  */
 
 function ensureAdmin(req, res, next) {
-  if (res.locals.user?.is_admin) return next();
+  console.log('ensureAdmin ran', res.locals.user?.isAdmin);
+
+  if (res.locals.user?.isAdmin) return next();
   throw new UnauthorizedError();
 }
 
-// TODO: we just verified that we can use isAdmin, next write a test, add ensureAdmin to routes
+/** Middleware to use when checking if user has permissions to make changes to data
+ *
+ * If not, raises Unauthorized.
+ */
+
+function ensureUserAccess(req, res, next) {
+  console.log('ensureUserAccess ran', req.params);
+
+  const userRoute = req.params?.username;
+  const currentUser = res.locals.user?.username;
+
+  const userMatchAndValid =
+    (userRoute === currentUser)
+    && (currentUser !== undefined && currentUser !== undefined);
+
+  if (res.locals.user?.isAdmin || userMatchAndValid) {
+    return next();
+  }
+  throw new UnauthorizedError();
+}
+
 
 export {
   authenticateJWT,
   ensureLoggedIn,
-  ensureAdmin
+  ensureAdmin,
+  ensureUserAccess
 };
