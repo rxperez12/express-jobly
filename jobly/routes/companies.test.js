@@ -103,8 +103,9 @@ describe("GET /companies", function () {
   });
 
   test("ok for all 3 params", async function () {
+
     const resp = await request(app).get(
-      "/companies?nameLike=3&minEmployees=1&maxEmployees=3");
+      "/companies?nameLike=3&minEmployees=2&maxEmployees=3");
     expect(resp.body).toEqual({
       companies:
         [
@@ -143,30 +144,6 @@ describe("GET /companies", function () {
       companies:
         [
           {
-            handle: "c1",
-            name: "C1",
-            description: "Desc1",
-            numEmployees: 1,
-            logoUrl: "http://c1.img",
-          },
-          {
-            handle: "c2",
-            name: "C2",
-            description: "Desc2",
-            numEmployees: 2,
-            logoUrl: "http://c2.img",
-          },
-        ],
-    });
-  });
-
-  test("ok for maxEmployees param", async function () {
-    const resp = await request(app).get(
-      "/companies?maxEmployees=2");
-    expect(resp.body).toEqual({
-      companies:
-        [
-          {
             handle: "c2",
             name: "C2",
             description: "Desc2",
@@ -184,22 +161,46 @@ describe("GET /companies", function () {
     });
   });
 
+  test("ok for maxEmployees param", async function () {
+    const resp = await request(app).get(
+      "/companies?maxEmployees=2");
+    expect(resp.body).toEqual({
+      companies:
+        [
+          {
+            handle: "c1",
+            name: "C1",
+            description: "Desc1",
+            numEmployees: 1,
+            logoUrl: "http://c1.img",
+          },
+          {
+            handle: "c2",
+            name: "C2",
+            description: "Desc2",
+            numEmployees: 2,
+            logoUrl: "http://c2.img",
+          },
+        ],
+    });
+  });
+
   test("error if wrong input data type", async function () {
     const resp = await request(app).get(
       "/companies?maxEmployees=heyyy");
-    expect(resp).toThrowError(/cannot be greater/);
+    expect(resp.status).toEqual(400);
   });
 
   test("error if long name", async function () {
     const resp = await request(app).get(
       "/companies?nameLike=hhgadkljafhglkjdfgkljfjagjljdfgllk;lbsj;sldjf;a");
-    expect(resp).toThrowError(/cannot be greater/);
+    expect(resp.status).toEqual(400);
   });
 
   test("error if minEmployees > maxEmployees", async function () {
     const resp = await request(app).get(
       "/companies?minEmployees=3&maxEmployees=1");
-    expect(resp).toThrowError(/cannot be greater/);
+    expect(resp.status).toEqual(400);
   });
 
 });

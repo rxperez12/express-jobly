@@ -19,9 +19,9 @@ describe("sqlForPartialUpdate", function () {
 
     expect(results).toEqual({
       setCols:
-        "\"first_name\"=$1, \"last_name\"=$2, \"password\"=$3, \"email\"=$4",
+        `"first_name"=$1, "last_name"=$2, \password\"=$3, \"email\"=$4`, TODO: fix ""
       values:
-        ["Jane", "Austen", "JA1", "ja@gmail.com"]
+      ["Jane", "Austen", "JA1", "ja@gmail.com"]
     });
   });
 

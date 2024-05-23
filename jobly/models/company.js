@@ -1,6 +1,6 @@
 import db from "../db.js";
 import { BadRequestError, NotFoundError } from "../expressError.js";
-import { sqlForPartialUpdate, sqlForFilterConditions } from "../helpers/sql.js";
+import { sqlForPartialUpdate } from "../helpers/sql.js";
 
 /** Related functions for companies. */
 
@@ -105,27 +105,20 @@ class Company {
    *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
    */
   static async getFiltered(filters) {
-    const { setCols, values } = sqlForFilterConditions(filters);
-    console.log('SETCOLS!!!!!', setCols);
-    console.log('VALUES!!!!!!', values);
-    // check what filtered values there are
+    const { whereClause, values } = this.sqlForFilterConditions(filters);
+
     const querySql = `
     SELECT
         handle,
         name,
         description,
         num_employees AS "numEmployees",
-        logo_url AS "logoUrl",
-    WHERE ${setCols}
-    RETURNING
-        handle,
-        name,
-        description,
-        num_employees AS "numEmployees",
-        logo_url AS "logoUrl"`;
+        logo_url AS "logoUrl"
+    FROM companies
+    WHERE ${whereClause}`;
     const result = await db.query(querySql, [...values]);
 
-    const companies = result.rows[0];
+    const companies = result.rows;
 
     return companies;
   }
@@ -183,6 +176,46 @@ class Company {
     const company = result.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+  }
+
+
+  /**
+ * Intake as the first arg as an object w/ properties for a where clause
+ * Outputs an object with 1 property for the WHERE clause string and a
+ * property for the corresponding key values
+ *
+ * EX INPUT:
+ *    { minEmployees:1, maxEmployees:2 }
+ *
+ * EX OUTPUT:
+ *    {
+ *        whereClause: num_employees >=1 AND num_employees <=2,
+ *        values: [1, 2]
+ *     };
+ *
+ */
+  static sqlForFilterConditions(dataToFilter) {
+    const keys = Object.keys(dataToFilter);
+    if (keys.length === 0) throw new BadRequestError("No data");
+
+    const partialClauses = keys.map((colName, idx) => {
+      if (colName === "nameLike") {
+        dataToFilter["nameLike"] = `%${dataToFilter["nameLike"]}%`;
+        return `name ILIKE $${idx + 1}`;
+      }
+      if (colName === "minEmployees") {
+        return `num_employees >= $${idx + 1}`;
+      }
+      if (colName === "maxEmployees") {
+        return `num_employees <= $${idx + 1}`;
+      }
+    }
+    );
+
+    return {
+      whereClause: partialClauses.join(" AND "),
+      values: Object.values(dataToFilter),
+    };
   }
 }
 

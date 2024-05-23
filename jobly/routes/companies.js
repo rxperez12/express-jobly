@@ -54,23 +54,32 @@ router.get("/", async function (req, res, next) {
   //Throw error if body is invalid,
   //return filtered data
   //If no body, then return all companies
-  const minEmployees = Number(req.params?.minEmployees);
-  const maxEmployees = Number(req.params?.maxEmployees);
-  const nameLike = req.params?.nameLike;
+  // const minEmployees = Number(req.query?.minEmployees);
+  // const maxEmployees = Number(req.query?.maxEmployees);
+  // const nameLike = req.query?.nameLike;
+
+  const userInput = {};
+
+  for (const key of ["minEmployees", "maxEmployees", "nameLike"]) {
+    if (req.query[key] !== undefined) {
+      if (key === "maxEmployees" || key === "minEmployees") {
+        userInput[key] = Number(req.query[key]);
+      } else {
+        userInput[key] = req.query[key];
+      }
+    }
+  }
 
   let companies;
-  if (!Number.isNaN(minEmployees)
-    || !Number.isNaN(maxEmployees)
-    || nameLike !== undefined) {
+
+  if (userInput.minEmployees !== undefined
+    || userInput.maxEmployees !== undefined
+    || userInput.nameLike !== undefined) {
     const validator = jsonschema.validate(
-      {
-        minEmployees: minEmployees,
-        maxEmployees: maxEmployees,
-        nameLike: nameLike
-      }
+      userInput
       ,
-      compGetFilter.json,
-      { required: true },
+      compGetFilter,
+      { required: false },
     );
 
     if (!validator.valid) {
@@ -78,12 +87,14 @@ router.get("/", async function (req, res, next) {
       throw new BadRequestError(errs);
     }
 
-    if ((minEmployees !== undefined && maxEmployees !== undefined)
-      && (minEmployees > maxEmployees)) {
+    if ((userInput.minEmployees !== undefined
+      && userInput.maxEmployees !== undefined)
+      && (userInput.minEmployees > userInput.maxEmployees)) {
       throw new BadRequestError('Min employees cannot be greater than max employees');
     }
 
-    companies = await Company.findFiltered(req.body); //TODO: placeholder function
+    companies = await Company.getFiltered(userInput);
+    return res.json({ companies });
   }
 
   companies = await Company.findAll();
