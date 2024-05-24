@@ -89,15 +89,18 @@ describe("get job by ID", function () {
 
   test("not found if no such company", async function () {
     try {
-      await Job.get(123123123123);
+      await Job.get(5);
       throw new Error("fail test, you shouldn't get here");
     } catch (err) {
+      console.log(err);
       expect(err instanceof NotFoundError).toBeTruthy();
     }
   });
 });
 
-
 /************************************** update */
+
+
+
 
 /************************************** delete */

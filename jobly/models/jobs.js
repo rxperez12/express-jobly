@@ -76,7 +76,22 @@ class Job {
    * Throws NotFoundError if job not found.
    **/
 
+  static async get(jobId) {
+    const jobResults = await db.query(`
+        SELECT id,
+               title,
+               salary,
+               equity,
+               company_handle AS "companyHandle"
+        FROM jobs
+        WHERE id = $1`, [jobId]);
 
+    const job = jobResults.rows[0];
+
+    if (!job) throw new NotFoundError(`No company: ${jobId}`);
+
+    return job;
+  }
 
 
 
