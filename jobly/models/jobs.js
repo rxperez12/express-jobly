@@ -53,17 +53,34 @@ class Job {
   *
   * Input (optional):
   *     { title: STRING case-insensitive,
-  *       midSalary: INTEGER returns >minSalary,
+  *       minSalary: INTEGER returns >minSalary,
   *       hasEquity: BOOLEAN
   *       }
   *
   * Outpus:
   *     [{ id, title, salary, equity, company_handle }, ...]
   *
+  * Throw NotFoundError if no jobs found that match the filters
+  *
   **/
+  static async findAllWithFilters(filters = {}) {
 
+    const whereClause = this.whereClauseInsert(filters);
+    console.log("running findAllWithFilters with Where:", whereClause);
 
+    const results = await db.query(`
+        SELECT id,
+               title,
+               salary,
+               equity,
+               company_handle AS "companyHandle"
+        FROM jobs
+        WHERE ${whereClause}
+        ORDER BY id`
+    );
 
+    return results.rows;
+  }
 
   /** Given a job id, return data about job.
    *
@@ -75,7 +92,6 @@ class Job {
    *
    * Throws NotFoundError if job not found.
    **/
-
   static async get(jobId) {
     const jobResults = await db.query(`
         SELECT id,
@@ -93,8 +109,6 @@ class Job {
     return job;
   }
 
-
-
   /** Update job data with `data`.
    *
    * This is a "partial update" --- it's fine if data doesn't contain
@@ -110,6 +124,42 @@ class Job {
    **/
 
   /** Delete given job from database; returns undefined. */
+
+
+  /**
+   * Intake an object w/ properties for a where clause
+   * Outputs a string to be inserted into a WHERE clause
+   *
+   * EX INPUT:
+   *  { title: STRING, minSalary: INTEGER, hasEquity: BOOLEAN }
+   *
+   * EX OUTPUT:
+   *  `title LIKE '%title%' AND salary >= minSalary AND equity > / = 0`
+   *
+   **/
+  static whereClauseInsert(filtersData) {
+
+    const filtersKeys = Object.keys(filtersData);
+
+    if (filtersKeys.length === 0) return `id > 0`;
+
+    const whereClauseInsert = filtersKeys.map((filterKey) => {
+      if (filterKey === "title") {
+        return `title LIKE '%${filtersData[filterKey]}%'`;
+      }
+      if (filterKey === "minSalary") {
+        return `salary >= ${filtersData[filterKey]}`;
+      }
+      if (filtersData[filterKey] === true) {
+        return `equity > 0`;
+      } else if (filtersData[filterKey] === false) {
+        return `equity = 0`;
+      }
+    }
+    );
+
+    return whereClauseInsert.join(" AND ");
+  }
 
 }
 

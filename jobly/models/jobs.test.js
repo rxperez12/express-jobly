@@ -67,8 +67,138 @@ describe("create", function () {
   });
 });
 
+/************************************** whereClauseInsert */
 
-/************************************** findAll */
+describe("generate where conditions for findAllWithFilters sql", function () {
+
+  test("ok: 0 filter passed in", async function () {
+    let conditions = Job.whereClauseInsert({});
+    expect(conditions).toEqual(`id > 0`);
+  });
+
+  test("ok: 1 filter passed in", async function () {
+    let conditions = Job.whereClauseInsert({ title: "job1" });
+    expect(conditions).toEqual(`title LIKE '%job1%'`);
+  });
+
+  test("ok: 2 filter passed in", async function () {
+    let conditions = Job.whereClauseInsert({
+      title: "job1",
+      minSalary: 100000
+    });
+    expect(conditions).toEqual(`title LIKE '%job1%' AND salary >= 100000`);
+  });
+
+  test("ok: 3 filter passed in", async function () {
+    let conditions = Job.whereClauseInsert({
+      title: "job",
+      minSalary: 1000,
+      hasEquity: true
+    });
+    expect(conditions).toEqual(
+      `title LIKE '%job%' AND salary >= 1000 AND equity > 0`
+    );
+  });
+});
+
+/************************************** findAllWithFilters */
+
+describe("find all with optional filters", function () {
+
+  test("ok: no filter passed in", async function () {
+    let jobs = await Job.findAllWithFilters();
+    expect(jobs).toEqual(
+      [{
+        id: 1,
+        title: "job1",
+        salary: 200000,
+        equity: '0',
+        companyHandle: "c1"
+      },
+      {
+        id: 2,
+        title: "job2",
+        salary: 100000,
+        equity: '0.5',
+        companyHandle: "c1"
+      },
+      {
+        id: 3,
+        title: "job3",
+        salary: 50000,
+        equity: '1',
+        companyHandle: "c2"
+      }]);
+  });
+
+  test("ok: 1 filter passed in", async function () {
+    let jobs = await Job.findAllWithFilters({ title: "job1" });
+    expect(jobs).toEqual(
+      [{
+        id: 1,
+        title: "job1",
+        salary: 200000,
+        equity: '0',
+        companyHandle: "c1"
+      }]);
+  });
+
+  test("ok: 2 filters passed in", async function () {
+    let jobs = await Job.findAllWithFilters({
+      title: "job",
+      minSalary: 100000
+    });
+
+    expect(jobs).toEqual(
+      [{
+        id: 1,
+        title: "job1",
+        salary: 200000,
+        equity: '0',
+        companyHandle: "c1"
+      },
+      {
+        id: 2,
+        title: "job2",
+        salary: 100000,
+        equity: '0.5',
+        companyHandle: "c1"
+      }]);
+  });
+
+  test("ok: 3 filters passed in", async function () {
+    let jobs = await Job.findAllWithFilters({
+      title: "job",
+      minSalary: 1000,
+      hasEquity: true
+    });
+
+    expect(jobs).toEqual(
+      [{
+        id: 2,
+        title: "job2",
+        salary: 100000,
+        equity: '0.5',
+        companyHandle: "c1"
+      },
+      {
+        id: 3,
+        title: "job3",
+        salary: 50000,
+        equity: '1',
+        companyHandle: "c2"
+      }]);
+  });
+
+  test("error: no job found", async function () {
+    let jobs = await Job.findAllWithFilters({
+      title: "no such job",
+      minSalary: 100000000
+    });
+    expect(jobs).toEqual(
+      []);
+  });
+});
 
 /************************************** getOne */
 
