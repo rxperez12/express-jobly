@@ -18,14 +18,36 @@ class Job {
    *    {title: TEXT
    *      salary: INTEGER CHECK (salary >= 0),
    *      equity: NUMERIC CHECK (equity <= 1.0),
-   *      company_handle: VARCHAR(25)}
+   *      companyHandle: VARCHAR(25)}
    *
    * Output:
    *    { id, title, salary, equity, company_handle }
    **/
+  static async create({ title, salary, equity, companyHandle }) {
 
+    const result = await db.query(`
+                INSERT INTO jobs (title,
+                                       salary,
+                                       equity,
+                                       company_handle)
+                VALUES ($1, $2, $3, $4)
+                RETURNING
+                    id,
+                    title,
+                    salary,
+                    equity,
+                    company_handle AS "companyHandle"`,
+      [
+        title,
+        salary,
+        equity,
+        companyHandle
+      ],
+    );
+    const job = result.rows[0];
 
-
+    return job;
+  }
 
   /** Find all jobs with or without filters.
   *
