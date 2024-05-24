@@ -6,6 +6,8 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../expressError.js";
+import { sqlForPartialUpdate } from "../helpers/sql.js";
+
 
 
 /** Related functions for jobs. */
@@ -66,7 +68,6 @@ class Job {
   static async findAllWithFilters(filters = {}) {
 
     const whereClause = this.whereClauseInsert(filters);
-    console.log("running findAllWithFilters with Where:", whereClause);
 
     const results = await db.query(`
         SELECT id,
@@ -114,6 +115,8 @@ class Job {
    * This is a "partial update" --- it's fine if data doesn't contain
    * all the fields; this only changes provided ones.
    *
+   * Id is an INTEGER
+   *
    * Data can include:
    *    { title, salary, equity }
    *
@@ -122,12 +125,45 @@ class Job {
    *
    * Throws NotFoundError if not found.
    **/
+  static async update(jobId, data) {
+
+    const { setCols, values } = sqlForPartialUpdate(
+      data,
+      {});
+
+    const querySql = `
+        UPDATE jobs
+        SET ${setCols}
+        WHERE id = ${jobId}
+        RETURNING
+            id,
+            title,
+            salary,
+            equity,
+            company_handle AS "companyHandle"`;
+    const result = await db.query(querySql, [...values]);
+    const job = result.rows[0];
+
+    if (!job) throw new NotFoundError(`No job: ${jobId}`);
+
+    return job;
+
+  }
 
   /** Delete given job from database; returns undefined. */
+  static async remove(jobId) {
+    const result = await db.query(`
+        DELETE
+        FROM jobs
+        WHERE id = $1
+        RETURNING id`, [jobId]);
+    const company = result.rows[0];
+
+    if (!company) throw new NotFoundError(`No job with id: ${jobId}`);
+  }
 
 
-  /**
-   * Intake an object w/ properties for a where clause
+  /** Intake an object w/ properties for a where clause
    * Outputs a string to be inserted into a WHERE clause
    *
    * EX INPUT:
@@ -160,7 +196,6 @@ class Job {
 
     return whereClauseInsert.join(" AND ");
   }
-
 }
 
 export default Job;

@@ -230,7 +230,74 @@ describe("get job by ID", function () {
 
 /************************************** update */
 
+describe("update", function () {
+  const updateData1 = {
+    id: 1,
+    title: "job1",
+    salary: 500000,
+    equity: '0',
+  };
 
+  const updateData2 = {
+    id: 1,
+    title: "job1",
+    salary: 500000,
+    equity: '1'
+  };
 
+  test("ok: has 1 field update", async function () {
+    let company = await Job.update(1, updateData1);
+    expect(company).toEqual({
+      id: 1,
+      ...updateData1,
+      companyHandle: "c1",
+    });
+  });
+
+  test("ok: has >1 field update", async function () {
+    let company = await Job.update(1, updateData2);
+    expect(company).toEqual({
+      id: 1,
+      ...updateData2,
+      companyHandle: "c1",
+    });
+  });
+
+  test("not found if no job", async function () {
+    try {
+      await Job.update(100, updateData1);
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("bad request with no data", async function () {
+    try {
+      await Job.update(1, {});
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof BadRequestError).toBeTruthy();
+    }
+  });
+});
 
 /************************************** delete */
+
+describe("delete", function () {
+  test("works", async function () {
+    await Job.remove(1);
+    const res = await db.query(
+      "SELECT id FROM jobs WHERE id=1");
+    expect(res.rows.length).toEqual(0);
+  });
+
+  test("not found if no matching job", async function () {
+    try {
+      await Job.remove(100);
+      throw new Error("fail test, you shouldn't get here");
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
